@@ -184,7 +184,7 @@ class Grid:
     def __init__(self):
         self.tab = [None] * Grid.STRINGS
         for i in range(Grid.STRINGS):
-            self.tab[i] = [None] * Grid.FRETS
+            self.tab[i] = [0] * Grid.FRETS
 
         self.open_string = [None] * Grid.STRINGS
         self.fret_no = [None] * Grid.FRETS
@@ -192,7 +192,9 @@ class Grid:
         self.name = None
 
     def set_note(self, string, fret, order):
-        self.tab[string][fret] = order
+        if order == -1:
+            order = 16
+        self.tab[string][fret] = self.tab[string][fret] | (1 << order)
 
     def set_fret(self, fret, fret_no):
         self.fret_no[fret] = fret_no
@@ -213,7 +215,10 @@ class Grid:
 
     def draw_square(self, pdf, x, y, w, h):
         pdf.set_line_width(0.3)
-        pdf.rect(x,y,w,h)
+        pdf.line(x,y,x+w,y)
+        pdf.line(x,y+h,x+w,y+h)
+        pdf.line(x,y,x,y+h)
+        pdf.line(x+w,y,x+w,y+h)
 
     def draw_circle(self, pdf, x, y, w, h, open=True):
         pdf.set_line_width(0.3)
@@ -248,18 +253,23 @@ class Grid:
         #notes
         wo = 2
         ho = 2
+        wob = wo+0.3 # need to make secondary objects bigger to show up over circle where necessary
+        hob = ho+0.3
+        
         for s in range(Grid.STRINGS):
             for f in range(Grid.FRETS):
-                if self.tab[s][f] == 0: # filled circle
+                if self.tab[s][f] & (1 << 0) != 0: # filled circle
                     self.draw_circle(pdf, x+BORDER+dw*s-(wo/2),y + TOP + f * dh + dh/2 - ho/2 , wo, ho, open=False)
-                if self.tab[s][f] == -1: # open circle
+                if self.tab[s][f] & (1 << 16) != 0: # open circle
                     self.draw_circle(pdf, x+BORDER+dw*s-(wo/2),y + TOP + f * dh + dh/2 - ho/2 , wo, ho, open=True)
-                if self.tab[s][f] == 1: # draw x
-                    self.draw_x(pdf, x+BORDER+dw*s-(wo/2), y + TOP + f * dh + dh/2 - ho/2 , wo, ho)
-                if self.tab[s][f] == 2: # draw triangle
-                    self.draw_triangle(pdf, x+BORDER+dw*s-(wo/2), y + TOP + f * dh + dh/2 - ho/2 , wo, ho)
-                if self.tab[s][f] == 3: # draw square
-                    self.draw_square(pdf, x+BORDER+dw*s-(wo/2), y + TOP + f * dh + dh/2 - ho/2 , wo, ho)
+                if self.tab[s][f] & (1 << 1) != 0: # draw x
+                    self.draw_x(pdf, x+BORDER+dw*s-(wob/2), y + TOP + f * dh + dh/2 - hob/2 , wob, hob)
+                if self.tab[s][f] & (1 << 2) != 0: # draw triangle
+                    self.draw_triangle(pdf, x+BORDER+dw*s-(wob/2), y + TOP + f * dh + dh/2 - hob/2 , wob, hob)
+                if self.tab[s][f] & (1 << 3) != 0: # draw square
+                    wos = wo+0.3 
+                    hos = ho+0.3
+                    self.draw_square(pdf, x+BORDER+dw*s-(wos/2), y + TOP + f * dh + dh/2 - hos/2 , wos, hos)
 
 
 
@@ -387,7 +397,8 @@ class Song:
                 for n in dg['tab']:
                     g.set_note(n[0],n[1],n[2])
                 g.set_fret(dg['fret'][0], dg['fret'][1])
-                g.set_open_string(dg['open_string'][0], dg['open_string'][1])
+                for o in dg['open strings']:
+                    g.set_open_string(o[0], o[1])
                 self.grids.append(g)
 
             
