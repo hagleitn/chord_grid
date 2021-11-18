@@ -1,0 +1,13 @@
+title: Autumn Leaves
+composer: Joseph Korma
+arranger: G. Hagleitner
+grids:
+        - name: A7
+          tab: [[0,2,0],[2,2,0],[3,3,0],[4,2,0],[3,4,1],[4,4,2],[4,5,3]]
+          open_string: [1,0]
+          fret: [2,5]
+
+        - name: A7
+          tab: [[0,2,0],[2,2,0],[3,3,0],[4,2,0]]
+          open_string: [1,0]
+          fret: [2,5]
