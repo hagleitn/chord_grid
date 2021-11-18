@@ -1,5 +1,6 @@
 from fpdf import FPDF
 from itertools import permutations
+import datetime
 
 class Note:
     NOTE_NAMES = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
@@ -71,7 +72,9 @@ class Ints:
     M7 = 11
     OCT = 12
 
-    INTERVAL_NAMES = ["UNISON", "Minor Second", "Major Second", "Minor Third", "Major Third", "Perfect Fourth", "Tritone", "Perfect Fifth", "Minor Sixth", "Major Sixth", "Minor Seventh", "Major Seventh", "Octave"]
+    INTERVAL_NAMES = ["UNISON", "Minor Second", "Major Second", "Minor Third",
+                      "Major Third", "Perfect Fourth", "Tritone", "Perfect Fifth",
+                      "Minor Sixth", "Major Sixth", "Minor Seventh", "Major Seventh", "Octave"]
 
 
 
@@ -196,16 +199,23 @@ class Grid:
         self.open_string[string] = order
 
     def draw_x(self, pdf, x, y, w, h):
-        pdf.set_line_width(0.2)
+        pdf.set_line_width(0.3)
         pdf.line(x,y,x+w,y+h)
         pdf.line(x,y+h,x+w,y)
 
-    def draw_tria(self, pdf, x, y, w, h):
-        pdf.set_line_width(0.2)
+    def draw_triangle(self, pdf, x, y, w, h):
+        pdf.set_line_width(0.3)
         pdf.line(x+w/2,y,x,y+h)
         pdf.line(x+w/2,y,x+w,y+h)
         pdf.line(x,y+h,x+w,y+h)
 
+    def draw_square(self, pdf, x, y, w, h):
+        pdf.set_line_width(0.3)
+        pdf.rect(x,y,w,h)
+
+    def draw_circle(self, pdf, x, y, w, h, open=True):
+        pdf.set_line_width(0.3)
+        pdf.ellipse(x,y,w,h,style= 'D' if open else 'DF')
 
     def print_grid(self, pdf, x, y, w, h):
         BORDER = 5
@@ -239,15 +249,15 @@ class Grid:
         for s in range(Grid.STRINGS):
             for f in range(Grid.FRETS):
                 if self.tab[s][f] == 0: # filled circle
-                    pdf.ellipse(x+BORDER+dw*s-(wo/2),y + TOP + f * dh + dh/2 - ho/2 , wo, ho, style='DF')
+                    self.draw_circle(pdf, x+BORDER+dw*s-(wo/2),y + TOP + f * dh + dh/2 - ho/2 , wo, ho, open=False)
                 if self.tab[s][f] == -1: # open circle
-                    pdf.ellipse(x+BORDER+dw*s-(wo/2),y + TOP + f * dh + dh/2 - ho/2 , wo, ho, style='D')
+                    self.draw_circle(pdf, x+BORDER+dw*s-(wo/2),y + TOP + f * dh + dh/2 - ho/2 , wo, ho, open=True)
                 if self.tab[s][f] == 1: # draw x
                     self.draw_x(pdf, x+BORDER+dw*s-(wo/2), y + TOP + f * dh + dh/2 - ho/2 , wo, ho)
                 if self.tab[s][f] == 2: # draw triangle
-                    self.draw_tria(pdf, x+BORDER+dw*s-(wo/2), y + TOP + f * dh + dh/2 - ho/2 , wo, ho)
+                    self.draw_triangle(pdf, x+BORDER+dw*s-(wo/2), y + TOP + f * dh + dh/2 - ho/2 , wo, ho)
                 if self.tab[s][f] == 3: # draw square
-                    pdf.rect(x+BORDER+dw*s-(wo/2), y + TOP + f * dh + dh/2 - ho/2 , wo, ho)
+                    self.draw_square(pdf, x+BORDER+dw*s-(wo/2), y + TOP + f * dh + dh/2 - ho/2 , wo, ho)
 
 
 
@@ -261,9 +271,7 @@ class Grid:
         if self.name != None:
             pdf.set_font('Arial', 'B', 8)
             pdf.set_xy(x,y)
-            pdf.cell(w, TOP, align='C', txt=self.name, border=0)
-            
-                
+            pdf.cell(w, TOP, align='C', txt=self.name, border=0)            
                 
 
 
@@ -275,12 +283,45 @@ class Song:
         self.arranger = None
         self.grids = []
 
-    def print_title(self,pdf):
+    def print_title(self, pdf):
         pdf.set_xy(0.0,0.0)
-        pdf.set_font('Arial', 'B', 16)
+        pdf.set_font('Arial', 'BU', 16)
         #pdf.set_text_color(220, 50, 50)
-        pdf.cell(w=210.0, h=40.0, align='C', txt=self.title, border=0)
+        pdf.cell(w=210.0, h=28.0, align='C', txt=self.title, border=0)
 
+    def print_legend(self, pdf):
+        pdf.set_xy(10.0,0.0)
+        pdf.set_font('Arial', '', 10)
+        pdf.cell(w=50.0, h=15.0, align='L', txt='PLAY ', border=0)
+        
+        g = Grid()
+        g.draw_circle(pdf, 22, 6.3, 2, 2, False)
+        pdf.line(25.5, 7.3, 27.5, 7.3) 
+        g.draw_x(pdf, 29, 6.3, 2, 2)
+        pdf.line(32.5, 7.3, 34.5, 7.3) 
+        g.draw_triangle(pdf, 36, 6.3, 2, 2)
+        pdf.line(39.5, 7.3, 41.5, 7.3) 
+        g.draw_square(pdf, 43, 6.3, 2, 2)
+        
+        
+    def print_composer(self, pdf):
+        if self.composer != None:
+            pdf.set_xy(0.0,0.0)
+            pdf.set_font('Arial', '', 12)
+            #pdf.set_text_color(220, 50, 50)
+            pdf.cell(w=210.0, h=40.0, align='C', txt=self.composer, border=0)
+
+    def print_arranger(self, pdf):
+        if self.arranger != None:
+            currentDateTime = datetime.datetime.now()
+            date = currentDateTime.date()
+            year = date.strftime("%Y")
+
+            pdf.set_xy(0.0,0.0)
+            pdf.set_font('Arial', '', 10)
+            #pdf.set_text_color(220, 50, 50)
+            pdf.cell(w=200.0, h=15.0, align='R', txt='(ARR. '+self.arranger.upper()+' '+str(year)+')', border=0)
+        
     def print_borders(self, pdf):
         pdf.set_line_width(0.0)
         pdf.line(5.0,5.0,205.0,5.0) # top one
@@ -313,7 +354,7 @@ class Song:
             y = (int(index / ITEMS_PER_LINE)) * hg + TOP
             grid.print_grid(pdf, x, y, wg, hg)
             index = index + 1
-        
+
     def print_pdf(self):
         pdf_w=210
         pdf_h=297
@@ -321,6 +362,9 @@ class Song:
         pdf.add_page()
         #self.print_borders(pdf)
         self.print_title(pdf)
+        self.print_composer(pdf)
+        self.print_arranger(pdf)
+        self.print_legend(pdf)
         self.print_grids(pdf, pdf_w, pdf_h)
         
 
@@ -359,8 +403,8 @@ def main():
 
     song = Song()
     song.title = 'Autumn Leaves'
-    song.composer = 'Unknown'
-    song.arranger = 'Gunther Hagleitner'
+    song.composer = 'Joseph Kosma'
+    song.arranger = 'G. Hagleitner'
 
     for i in range(64):
         grid = Grid()
