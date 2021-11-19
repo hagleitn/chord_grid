@@ -203,22 +203,28 @@ class Grid:
         self.open_string[string] = order
 
     def draw_x(self, pdf, x, y, w, h):
+        pdf.set_draw_color(100)
         pdf.set_line_width(0.3)
         pdf.line(x,y,x+w,y+h)
         pdf.line(x,y+h,x+w,y)
+        pdf.set_draw_color(0)
 
     def draw_triangle(self, pdf, x, y, w, h):
+        pdf.set_draw_color(100)        
         pdf.set_line_width(0.3)
         pdf.line(x+w/2,y,x,y+h)
         pdf.line(x+w/2,y,x+w,y+h)
         pdf.line(x,y+h,x+w,y+h)
+        pdf.set_draw_color(0)
 
     def draw_square(self, pdf, x, y, w, h):
+        pdf.set_draw_color(100)
         pdf.set_line_width(0.3)
         pdf.line(x,y,x+w,y)
         pdf.line(x,y+h,x+w,y+h)
         pdf.line(x,y,x,y+h)
         pdf.line(x+w,y,x+w,y+h)
+        pdf.set_draw_color(0)           
 
     def draw_circle(self, pdf, x, y, w, h, open=True):
         pdf.set_line_width(0.3)
@@ -251,10 +257,10 @@ class Grid:
 
 
         #notes
-        wo = 2
-        ho = 2
-        wob = wo+0.3 # need to make secondary objects bigger to show up over circle where necessary
-        hob = ho+0.3
+        wo = 1.4
+        ho = 1.4
+        wob = wo+0.7 # need to make secondary objects bigger to show up over circle where necessary
+        hob = ho+0.7
         
         for s in range(Grid.STRINGS):
             for f in range(Grid.FRETS):
@@ -267,9 +273,7 @@ class Grid:
                 if self.tab[s][f] & (1 << 2) != 0: # draw triangle
                     self.draw_triangle(pdf, x+BORDER+dw*s-(wob/2), y + TOP + f * dh + dh/2 - hob/2 , wob, hob)
                 if self.tab[s][f] & (1 << 3) != 0: # draw square
-                    wos = wo+0.3 
-                    hos = ho+0.3
-                    self.draw_square(pdf, x+BORDER+dw*s-(wos/2), y + TOP + f * dh + dh/2 - hos/2 , wos, hos)
+                    self.draw_square(pdf, x+BORDER+dw*s-(wob/2), y + TOP + f * dh + dh/2 - hob/2 , wob, hob)
 
 
 
@@ -397,8 +401,9 @@ class Song:
                 for n in dg['tab']:
                     g.set_note(n[0],n[1],n[2])
                 g.set_fret(dg['fret'][0], dg['fret'][1])
-                for o in dg['open strings']:
-                    g.set_open_string(o[0], o[1])
+                if 'open strings' in dg:
+                    for o in dg['open strings']:
+                        g.set_open_string(o[0], o[1])
                 self.grids.append(g)
 
             
