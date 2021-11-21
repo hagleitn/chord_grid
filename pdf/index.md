@@ -4,4 +4,4 @@ Ted Greene style chord grids. (See here: https://www.tedgreene.com/images/lesson
 
 Current grids:
 
-[Autumn Leaves][Autumn Leaves.pdf]
+- [Autumn Leaves](./Autumn Leaves.pdf)
