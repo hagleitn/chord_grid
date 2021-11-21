@@ -230,11 +230,11 @@ class Grid:
         pdf.set_line_width(0.3)
         pdf.ellipse(x,y,w,h,style= 'D' if open else 'DF')
 
-    def print_grid(self, pdf, x, y, w, h):
+    def print_grid(self, pdf, x, y, w, h, section=None, divider=False):
         BORDER = 5
         TOP = 8
         BOTTOM = 3
-        
+
         #pdf.rect(x, y, w, h)
         pdf.set_line_width(0.0)
 
@@ -252,7 +252,7 @@ class Grid:
         for i in range(Grid.FRETS):
             pdf.set_font('Arial', '', 7)
             if self.fret_no[i] != None:
-                pdf.set_xy(x+BORDER-5,y + TOP + i * dh)
+                pdf.set_xy(x+BORDER-4,y + TOP + i * dh)
                 pdf.cell(4, dh, align='R', txt=str(self.fret_no[i]), border=0)
 
 
@@ -275,8 +275,6 @@ class Grid:
                 if self.tab[s][f] & (1 << 3) != 0: # draw square
                     self.draw_square(pdf, x+BORDER+dw*s-(wob/2), y + TOP + f * dh + dh/2 - hob/2 , wob, hob)
 
-
-
         #open strings
         for s in range(Grid.STRINGS):
             if self.open_string[s] != None:
@@ -288,7 +286,18 @@ class Grid:
             pdf.set_font('Arial', 'B', 8)
             pdf.set_xy(x,y)
             pdf.cell(w, TOP, align='C', txt=self.name, border=0)            
-                
+
+        #section
+        SPACER = 0.3
+        TOP_SPACE = 2
+        if section != None:
+            pdf.set_font('Arial', 'B', 8)
+            pdf.set_xy(x-2,y)
+            pdf.cell(2*2, TOP/2, align='L', txt=section, border=1)
+        if divider:
+            pdf.line(x-SPACER, y+TOP+TOP_SPACE, x-SPACER, y+h-BOTTOM-TOP_SPACE)
+            pdf.line(x+SPACER, y+TOP+TOP_SPACE, x+SPACER, y+h-BOTTOM-TOP_SPACE)
+
 
 
 class Song:
@@ -356,20 +365,36 @@ class Song:
         ITEMS_PER_LINE = 8
         ITEMS_PER_ROW = 8
 
+        full_index = 0
         index = 0
         line_no = 0
+        
+        cur_marker = 0 
         
         for grid in self.grids:
             if (index != 0) and (index % (ITEMS_PER_LINE * ITEMS_PER_ROW) == 0):
                 print("adding page")
                 pdf.add_page()
                 index = 0
+
+            section = None
+            divider = False
+
+            if cur_marker < len(self.section_markers):
+                sm = self.section_markers[cur_marker]
+                if sm[0] == full_index:
+                    section = sm[1]
+                    divider = True
+                    cur_marker = cur_marker + 1
+            
             wg = (w - 2 * BORDER) / ITEMS_PER_LINE
             hg = (h - TOP - BOTTOM) / ITEMS_PER_ROW
             x = (index % ITEMS_PER_LINE) * wg + BORDER
             y = (int(index / ITEMS_PER_LINE)) * hg + TOP
-            grid.print_grid(pdf, x, y, wg, hg)
+
+            grid.print_grid(pdf, x, y, wg, hg, section, divider)
             index = index + 1
+            full_index = full_index + 1
 
     def print_pdf(self):
         pdf_w=210
@@ -395,16 +420,23 @@ class Song:
             self.title = d['title']
             self.composer = d['composer']
             self.arranger = d['arranger']
+            self.section_markers = []
+            index = 0
             for dg in d['grids']:
-                g = Grid()
-                g.name = dg['name']
-                for n in dg['tab']:
-                    g.set_note(n[0],n[1],n[2])
-                g.set_fret(dg['fret'][0], dg['fret'][1])
-                if 'open strings' in dg:
-                    for o in dg['open strings']:
-                        g.set_open_string(o[0], o[1])
-                self.grids.append(g)
+                if 'section' in dg:
+                    print(dg['section'])
+                    self.section_markers.append([index,dg['section']])
+                else:
+                    g = Grid()
+                    g.name = dg['name']
+                    for n in dg['tab']:
+                        g.set_note(n[0],n[1],n[2])
+                        g.set_fret(dg['fret'][0], dg['fret'][1])
+                        if 'open strings' in dg:
+                            for o in dg['open strings']:
+                                g.set_open_string(o[0], o[1])
+                    self.grids.append(g)
+                    index = index + 1
 
             
 def main():
