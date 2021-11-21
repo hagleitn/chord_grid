@@ -374,7 +374,7 @@ class Song:
         
         for grid in self.grids:
             if (index != 0) and (index % (ITEMS_PER_LINE * ITEMS_PER_ROW) == 0):
-                print("adding page")
+                #print("adding page")
                 pdf.add_page()
                 index = 0
 
@@ -425,7 +425,7 @@ class Song:
             index = 0
             for dg in d['grids']:
                 if 'section' in dg:
-                    print(dg['section'])
+                    #print(dg['section'])
                     self.section_markers.append([index,dg['section']])
                 else:
                     g = Grid()
