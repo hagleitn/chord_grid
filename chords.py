@@ -3,6 +3,7 @@ from itertools import permutations
 import datetime
 import yaml
 import io
+import sys
 
 class Note:
     NOTE_NAMES = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
@@ -396,7 +397,7 @@ class Song:
             index = index + 1
             full_index = full_index + 1
 
-    def print_pdf(self):
+    def print_pdf(self,pdf_dir):
         pdf_w=210
         pdf_h=297
         pdf = FPDF(orientation='P', unit='mm', format='A4')
@@ -411,7 +412,7 @@ class Song:
 
         pdf.set_author(self.arranger)
         
-        pdf.output(self.title + '.pdf','F')
+        pdf.output(pdf_dir+'/'+self.title + '.pdf','F')
 
     def load(self, name):
         with open(name, 'r') as stream:
@@ -440,60 +441,15 @@ class Song:
 
             
 def main():
-    # chord = Chord("C Eb G")
-    # print("C Eb G")
-    # print(chord)
-    # #print(chord.dist_map)
-    # print()
-    # chord = Chord("C Eb G Bb")
-    # print("C Eb G Bb")
-    # print(chord)
-    # #print(chord.dist_map)
-    # print()
+    if len(sys.argv) < 2 or len(sys.argv) > 3:
+        print('Usage: chords.py <yaml> <pdf-dir>')
+        sys.exit(-1)
 
-    # notes = ["C", "Eb", "G"]
-    # for i in permutations(notes, 3):
-    #     c = Chord(' '.join(i))
-    #     if (c.notes[0].note != 0):
-    #         print(i)
-    #         print(c)
-    #         print(c.intervals())
-    
-    # notes = ["C", "Eb", "G", "Bb"]
-    # for i in permutations(notes, 4):
-    #     c = Chord(' '.join(i))
-    #     print(i)
-    #     print(c)
-    #     print(c.intervals())
-    #     print()
-
-
+    yaml = sys.argv[1]
+    pdf_dir = sys.argv[2] if len(sys.argv) == 3 else None
     song = Song()
-    # song.title = 'Autumn Leaves'
-    # song.composer = 'Joseph Kosma'
-    # song.arranger = 'G. Hagleitner'
-
-    # for i in range(64):
-    #     grid = Grid()
-    #     grid.name = "A7"
-    #     grid.set_note(0,2,0)
-    #     grid.set_note(2,2,0)
-    #     grid.set_note(3,3,0)
-    #     grid.set_note(4,2,0)
-    #     grid.set_note(5,2,-1)
-    #     grid.set_note(3,4,1)
-    #     grid.set_note(4,4,2)
-    #     grid.set_note(4,5,3)
-    #     grid.set_open_string(1,0)
-    #     grid.set_fret(0,i)
-    #     grid.set_fret(1,4)
-    #     grid.set_fret(2,5)
-    #     grid.set_fret(3,6)
-    #     grid.set_fret(4,7)
-    #     grid.set_fret(5,8)
-    #     song.grids.append(grid)
-    song.load('autumnleaves.yaml')
-    song.print_pdf()
+    song.load(yaml)
+    song.print_pdf(pdf_dir)
 
 if __name__ == "__main__":
     main()
