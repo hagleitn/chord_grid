@@ -4,4 +4,4 @@ Simple command line tool to create Ted Greene style chord grids. (See here: [How
 
 Current grids:
 
-- [Autumn Leaves](../pdf/Autumn Leaves.pdf)
+- [Autumn Leaves](./Autumn Leaves.pdf)
